@@ -21,6 +21,7 @@ import {
   InputLabel,
   TextField,
   Slider,
+  Paper,
 } from "@mui/material";
 import Qrcodeme from "../qrcode.png";
 
@@ -97,69 +98,83 @@ export default function ProductList() {
   );
 
   return (
-    <div className="p-4">
+    <Box sx={{ p: 1 }}>
+      {" "}
+      {/* Thêm margin-top để tránh đè lên AppBar */}
       <Typography variant="h4" gutterBottom>
-        Danh Sách Sản Phẩm
+        Danh Sách Sản Phẩm Đăng Bán
       </Typography>
+      <Paper
+        elevation={3}
+        sx={{
+          position: "sticky",
+          top: 64, // Đảm bảo không bị AppBar che
+          zIndex: 1100, // Cao hơn AppBar nếu cần
+          p: 2,
+          mb: 3,
+          backgroundColor: "white",
+          borderRadius: "12px",
+        }}
+      >
+        <Box display="flex" gap={2} flexWrap="wrap">
+          <FormControl fullWidth>
+            <InputLabel>Phân Loại</InputLabel>
+            <Select
+              value={selectedCategory}
+              label="Phân Loại"
+              onChange={handleCategoryChange}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-      <Box display="flex" gap={2} mb={3} flexWrap="wrap">
-        <FormControl fullWidth>
-          <InputLabel>Phân Loại</InputLabel>
-          <Select
-            value={selectedCategory}
-            label="Phân Loại"
-            onChange={handleCategoryChange}
-          >
-            <MenuItem value="">Tất cả</MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          fullWidth
-          label="Tìm kiếm sản phẩm"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          variant="outlined"
-        />
-
-        <Box width="100%">
-          <Typography gutterBottom>
-            Khoảng Giá: {priceRange[0].toLocaleString()} -{" "}
-            {priceRange[1].toLocaleString()} VND
-          </Typography>
-          <Slider
-            value={priceRange}
-            onChange={handlePriceChange}
-            valueLabelDisplay="auto"
-            step={100000}
-            marks={[
-              { value: 0, label: "0" },
-              { value: 100000, label: "100k" },
-              { value: 200000, label: "200k" },
-              { value: 500000, label: "500k" },
-            ]}
-            min={0}
-            max={500000}
+          <TextField
+            fullWidth
+            label="Tìm kiếm sản phẩm"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            variant="outlined"
           />
-        </Box>
-      </Box>
 
+          <Box width="100%">
+            <Typography gutterBottom>
+              Khoảng Giá: {priceRange[0].toLocaleString()} -{" "}
+              {priceRange[1].toLocaleString()} VND
+            </Typography>
+            <Slider
+              value={priceRange}
+              onChange={handlePriceChange}
+              valueLabelDisplay="auto"
+              step={100000}
+              marks={[
+                { value: 0, label: "0" },
+                { value: 100000, label: "100k" },
+                { value: 200000, label: "200k" },
+                { value: 500000, label: "500k" },
+              ]}
+              min={0}
+              max={500000}
+            />
+          </Box>
+        </Box>
+      </Paper>
       <Grid container spacing={3}>
         {filteredProducts.length ? (
           filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product.id}>
               <Card
-                className="rounded-2xl shadow-lg"
                 sx={{
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
+                  borderRadius: "16px",
+                  boxShadow: 3,
                 }}
               >
                 <CardMedia
@@ -176,7 +191,7 @@ export default function ProductList() {
                   }}
                 />
                 <CardContent>
-                  <Typography variant="h6" gutterBottom noWrap>
+                  <Typography variant="h6" noWrap gutterBottom>
                     {product.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -186,7 +201,7 @@ export default function ProductList() {
                     Giá: {product.price.toLocaleString()} VND
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ p: 2, gap: 1 }}>
+                <CardActions sx={{ p: 2 }}>
                   <Button
                     variant="contained"
                     color="primary"
@@ -206,7 +221,6 @@ export default function ProductList() {
           </Typography>
         )}
       </Grid>
-
       {selectedProduct && (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
           <DialogTitle>
@@ -233,8 +247,8 @@ export default function ProductList() {
             </RadioGroup>
 
             {paymentMethod === "bank" && (
-              <Box className="mt-4 p-4 border rounded-xl bg-gray-100">
-                <Typography variant="subtitle1">
+              <Box sx={{ mt: 4, p: 3, borderRadius: 2, bgcolor: "#f0f0f0" }}>
+                <Typography variant="subtitle1" gutterBottom>
                   Thông tin chuyển khoản
                 </Typography>
                 <Typography variant="body2">
@@ -244,15 +258,9 @@ export default function ProductList() {
                   Số điện thoại Momo: 123456789
                 </Typography>
                 <Typography variant="body2">Ngân Hàng: ABC Bank</Typography>
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="center"
-                  gap={2}
-                  className="mt-4"
-                >
-                  <img src={Qrcodeme} alt="QR Code 1" width={200} />
-                  <img src={Qrcodeme} alt="QR Code 2" width={200} />
+                <Box display="flex" justifyContent="center" gap={2} mt={3}>
+                  <img src={Qrcodeme} alt="QR Code 1" width={180} />
+                  <img src={Qrcodeme} alt="QR Code 2" width={180} />
                 </Box>
               </Box>
             )}
@@ -271,6 +279,6 @@ export default function ProductList() {
           </DialogActions>
         </Dialog>
       )}
-    </div>
+    </Box>
   );
 }
