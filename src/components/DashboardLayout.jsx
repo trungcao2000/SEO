@@ -270,39 +270,68 @@ export default function DashboardLayout() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              px: { xs: 1, sm: 2 },
+              height: { xs: 56, sm: 64 }, // Chiều cao nhỏ hơn trên mobile
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2, display: { sm: "none" } }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <BouncingText>Thuốc Lào Tiên Lãng</BouncingText>
-            </Box>
-
-            {/* Logo Avatar Responsive */}
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            {/* Menu & Title (Mobile: chỉ hiển thị icon menu và chữ nhỏ hơn) */}
+            <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
               <Avatar
                 alt="Logo"
                 src={Logo}
                 sx={{
-                  width: { xs: 40, sm: 50, md: 80 },
-                  height: { xs: 40, sm: 50, md: 80 },
-                  mx: { xs: 1, sm: 2 },
+                  width: { xs: 32, sm: 44, md: 60 },
+                  height: { xs: 32, sm: 44, md: 60 },
+                  mx: { xs: 0.5, sm: 1.5 },
                 }}
               />
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: { xs: 0.5, sm: 1 }, display: { sm: "none" } }}
+              >
+                <MenuIcon fontSize="small" />
+              </IconButton>
+              <BouncingText
+                sx={{
+                  fontSize: { xs: "2rem", sm: "3.2rem" },
+                  ml: { xs: 0.5, sm: 1 },
+                }}
+              >
+                Thuốc Lào Tiên Lãng
+              </BouncingText>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton color="inherit" onClick={toggleDarkMode}>
-                {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+            {/* Logo Avatar (Nhỏ hơn trên mobile, căn giữa) */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexGrow: 1,
+              }}
+            ></Box>
+
+            {/* Icon Buttons (Thu nhỏ icon trên mobile và giảm khoảng cách) */}
+            <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+              <IconButton
+                color="inherit"
+                onClick={toggleDarkMode}
+                sx={{ ml: { xs: 0.5, sm: 1 } }}
+              >
+                {darkMode ? (
+                  <Brightness7Icon fontSize="small" />
+                ) : (
+                  <Brightness4Icon fontSize="small" />
+                )}
               </IconButton>
-              <IconButton color="inherit" onClick={toggleContactPanel}>
-                <ContactMailIcon />
+              <IconButton
+                color="inherit"
+                onClick={toggleContactPanel}
+                sx={{ ml: { xs: 0.5, sm: 1 } }}
+              >
+                <ContactMailIcon fontSize="small" />
               </IconButton>
             </Box>
           </Toolbar>
