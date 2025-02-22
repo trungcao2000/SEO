@@ -1,41 +1,39 @@
 import React from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { Fab, Tooltip } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 
-const MessengerChatButton = () => {
-  const messengerUrl = "https:/m.me/104708512416680";
+const MessengerLinkButton = () => {
+  const messengerLink = "https://m.me/104708512416680"; // Thay bằng Page ID của bạn
+
+  const handleClick = () => {
+    const newWindow = window.open(
+      messengerLink,
+      "_blank",
+      "noopener,noreferrer"
+    );
+    if (newWindow) newWindow.opener = null;
+  };
 
   return (
-    <Tooltip title="Chat với chúng tôi trên Messenger" arrow>
-      <IconButton
+    <Tooltip title="Chat qua Messenger">
+      <Fab
         color="primary"
-        onClick={() => window.open(messengerUrl, "_blank")}
+        onClick={handleClick}
         sx={{
           position: "fixed",
-          bottom: 16,
-          right: 16,
-          bgcolor: "white",
-          borderRadius: "50%",
-          boxShadow: 3,
-          width: 64,
-          height: 64,
-          animation: "bounce 2s infinite",
-          "&:hover": {
-            bgcolor: "primary.main",
-            color: "white",
-            transform: "scale(1.1)",
-            transition: "all 0.3s ease",
-          },
-          "@keyframes bounce": {
-            "0%, 100%": { transform: "translateY(0)" },
-            "50%": { transform: "translateY(-10px)" },
-          },
+          bottom: 20,
+          right: 20,
+          bgcolor: "#0084FF",
+          color: "#fff",
+          "&:hover": { bgcolor: "#006bbd" },
+          fontFamily: "Times New Roman",
+          zIndex: 1000,
         }}
       >
-        <ChatIcon fontSize="large" />
-      </IconButton>
+        <ChatIcon />
+      </Fab>
     </Tooltip>
   );
 };
 
-export default MessengerChatButton;
+export default MessengerLinkButton;

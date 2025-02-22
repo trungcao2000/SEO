@@ -36,16 +36,31 @@ import { Helmet } from "react-helmet";
 import Logo from "../logo.png";
 import { styled } from "@mui/system";
 import { NavLink, Outlet } from "react-router";
+import MessengerChatButton from "../pages/MessengerChatButton";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+const drawerWidth = 288;
 
-const drawerWidth = 250;
-const marqueeAnimation = keyframes`
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-`;
 const menuItems = [
-  { text: "Trang chủ", icon: <DashboardIcon />, path: "/" },
-  { text: "Bài viết", icon: <ArticleIcon />, path: "/posts" },
-  { text: "Thiếp lập đơn hàng", icon: <SettingsIcon />, path: "/settings" },
+  {
+    text: "Sản Phẩm",
+    icon: <DashboardIcon />,
+    path: "/",
+  },
+  {
+    text: "Đăng Bán",
+    icon: <AddShoppingCartIcon />,
+    path: "/sells",
+  },
+  {
+    text: "Bài viết",
+    icon: <ArticleIcon />,
+    path: "/posts",
+  },
+  {
+    text: "Thiết lập đơn hàng",
+    icon: <SettingsIcon />,
+    path: "/settings",
+  },
 ];
 
 export default function DashboardLayout() {
@@ -57,8 +72,7 @@ export default function DashboardLayout() {
   const handleDrawerCollapse = () => setDrawerOpen(!drawerOpen);
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleContactPanel = () => setContactOpen(!contactOpen);
-  const phoneNumber = "0376 256 513";
-  const emailAddress = "trungthuoclao71@gmail.com";
+
   const theme = useMemo(
     () =>
       createTheme({
@@ -81,7 +95,7 @@ export default function DashboardLayout() {
   // Styled Typography có hiệu ứng
   const BouncingText = styled(Typography)(({ theme }) => ({
     fontWeight: 300,
-    fontFamily: "Inter, sans-serif",
+    fontFamily: '"Times New Roman", serif',
     textTransform: "uppercase",
     color: "white",
     WebkitTextStroke: "1px gold",
@@ -95,7 +109,16 @@ export default function DashboardLayout() {
     maxWidth: "100%", // Giới hạn trong khung
   }));
   const mapLink = "https://maps.app.goo.gl/ozWfrrkh4Rcn4cqn7";
-
+  const rainbowGlow = keyframes`
+  0% { color: red; text-shadow: 0 0 10px red, 0 0 20px red; }
+  14% { color: orange; text-shadow: 0 0 10px orange, 0 0 20px orange; }
+  28% { color: yellow; text-shadow: 0 0 10px yellow, 0 0 20px yellow; }
+  42% { color: green; text-shadow: 0 0 10px green, 0 0 20px green; }
+  57% { color: blue; text-shadow: 0 0 10px blue, 0 0 20px blue; }
+  71% { color: indigo; text-shadow: 0 0 10px indigo, 0 0 20px indigo; }
+  85% { color: violet; text-shadow: 0 0 10px violet, 0 0 20px violet; }
+  100% { color: red; text-shadow: 0 0 10px red, 0 0 20px red; }
+`;
   const handleOpenMap = () => {
     window.open(mapLink, "_blank"); // Mở link trong tab mới
   };
@@ -114,35 +137,31 @@ export default function DashboardLayout() {
           sx={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
             flexGrow: 1,
             minWidth: 0,
-            overflow: "hidden",
+            overflow: "visible",
           }}
         >
-          <Avatar
-            alt="Logo"
-            src={Logo}
-            sx={{
-              width: { xs: 30, sm: 34 },
-              height: { xs: 30, sm: 34 },
-              mr: 1,
-            }}
-          />
           <Box
             sx={{
               position: "relative",
-              width: { xs: 70, sm: 120, md: 160 },
-              overflow: "hidden",
+              width: { xs: 120, sm: 160, md: 200 },
+              maxWidth: "100%",
+              ml: { xs: 1, sm: 2 }, // Dịch toàn bộ chữ sang phải
             }}
           >
             <Typography
               variant="subtitle2"
               sx={{
-                fontWeight: "bold",
-                fontSize: { xs: "1rem", sm: "2rem" },
+                fontSize: { xs: "1.2rem", sm: "1.6rem", md: "1.8rem" },
+                fontFamily: '"Times New Roman", serif',
                 whiteSpace: "nowrap",
-                display: "inline-block",
-                animation: `${marqueeAnimation} 6s linear infinite`,
+                flexShrink: 0,
+                textAlign: "center",
+                pl: { xs: 0.5, sm: 1 }, // Đẩy chữ sang phải
+                pr: { xs: 2, sm: 3 }, // ⚡️ Thêm khoảng cách bên phải để mũi tên không che chữ
+                animation: `${rainbowGlow} 3s infinite ease-in-out`,
                 "&:hover": {
                   color: "primary.main",
                   animationPlayState: "paused",
@@ -172,6 +191,7 @@ export default function DashboardLayout() {
               transition: "all 0.3s ease",
               boxShadow: 2,
               zIndex: 1,
+              ml: { xs: 0.5, sm: 1 }, // 🚀 Dịch nút mũi tên sang phải thêm khoảng trống
               "&:hover": {
                 bgcolor: "primary.light",
                 transform: "scale(1.1)",
@@ -190,6 +210,7 @@ export default function DashboardLayout() {
           </IconButton>
         </Box>
       </Toolbar>
+
       <Divider />
       <List>
         {menuItems.map(({ text, icon, path }) => (
@@ -229,10 +250,7 @@ export default function DashboardLayout() {
       <Helmet>
         <title>ĐẶNG TRUNG</title>
         <meta name="description" content="ĐẶNG TRUNG - THUỐC LÀO TIÊN LÃNG" />
-        <meta
-          name="keywords"
-          content="ĐẶNG TRUNG, THUỐC LÀO TIÊN LÃNG, www.fb.com/thuoclaodangtrung, 0345569129"
-        />
+        <meta name="keywords" content="ĐẶNG TRUNG, THUỐC LÀO TIÊN LÃNG" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <link rel="canonical" href="hhtps://caovantrung.netlify.app/" />
       </Helmet>
@@ -247,7 +265,13 @@ export default function DashboardLayout() {
             ml: { sm: `${drawerOpen ? drawerWidth : 56}px` },
           }}
         >
-          <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Toolbar
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <IconButton
                 color="inherit"
@@ -257,10 +281,23 @@ export default function DashboardLayout() {
               >
                 <MenuIcon />
               </IconButton>
-
               <BouncingText>Thuốc Lào Tiên Lãng</BouncingText>
             </Box>
-            <Box>
+
+            {/* Logo Avatar Responsive */}
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Avatar
+                alt="Logo"
+                src={Logo}
+                sx={{
+                  width: { xs: 40, sm: 50, md: 80 },
+                  height: { xs: 40, sm: 50, md: 80 },
+                  mx: { xs: 1, sm: 2 },
+                }}
+              />
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <IconButton color="inherit" onClick={toggleDarkMode}>
                 {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
@@ -357,8 +394,19 @@ export default function DashboardLayout() {
               </IconButton>
             </Box>
             <Typography variant="body2">
-              📞 Phone: <a href={`tel:${phoneNumber}`}>84+ 376 256 513</a>
+              📞 Phone:{" "}
+              <a
+                href="tel:0376256513"
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  fontWeight: "bold",
+                }}
+              >
+                0376 256 513
+              </a>
             </Typography>
+
             <Button
               variant="contained"
               color="primary"
@@ -376,12 +424,20 @@ export default function DashboardLayout() {
             </Button>
             <Typography variant="body2">
               ✉️ Email:{" "}
-              <a href={`mailto:${emailAddress}`}>trungthuoclao71@gmail.com</a>
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=trungthuoclao71@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  fontWeight: "bold",
+                }}
+              >
+                trungthuoclao71@gmail.com
+              </a>
             </Typography>
-            <Typography variant="body2">
-              🏢 Địa chỉ: Thôn Thanh Trì, Xã Kiến Thiết, H.Tiên Lãng, TP.Hải
-              Phòng
-            </Typography>
+
             <Button
               variant="contained"
               color="primary"
@@ -397,6 +453,7 @@ export default function DashboardLayout() {
             </Button>
           </Paper>
         </Slide>
+        {<MessengerChatButton />}
       </Box>
     </ThemeProvider>
   );

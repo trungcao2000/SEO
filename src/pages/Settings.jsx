@@ -9,24 +9,27 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   Chip,
+  Button,
   Box,
+  Alert,
 } from "@mui/material";
 import {
-  CheckCircleOutline,
   HourglassEmpty,
   LocalShipping,
+  CheckCircleOutline,
   Cancel,
 } from "@mui/icons-material";
 
+// Dữ liệu mẫu
 const initialOrders = [
-  { id: "12345", status: "Chờ duyệt" },
-  { id: "67890", status: "Đang giao hàng" },
-  { id: "54321", status: "Đã giao hàng" },
-  { id: "98765", status: "Đã hủy" },
+  { id: "ORD001", status: "Chờ duyệt" },
+  { id: "ORD002", status: "Đang giao hàng" },
+  { id: "ORD003", status: "Đã giao hàng" },
+  { id: "ORD004", status: "Đã hủy" },
 ];
 
+// Hàm trả về chip trạng thái
 const getStatusChip = (status) => {
   switch (status) {
     case "Chờ duyệt":
@@ -54,6 +57,7 @@ const getStatusChip = (status) => {
 
 const EmployeeOrderPage = () => {
   const [orders, setOrders] = useState(initialOrders);
+  const isEmployee = false; // Thay đổi giá trị này để kiểm tra quyền truy cập
 
   const handleApprove = (id) => {
     const updatedOrders = orders.map((order) =>
@@ -68,6 +72,19 @@ const EmployeeOrderPage = () => {
     );
     setOrders(updatedOrders);
   };
+
+  if (!isEmployee) {
+    return (
+      <Container maxWidth="sm" sx={{ mt: 6 }}>
+        <Alert
+          severity="warning"
+          sx={{ fontSize: "16px", borderRadius: "8px" }}
+        >
+          Bạn không có quyền truy cập tính năng này.
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
@@ -100,7 +117,7 @@ const EmployeeOrderPage = () => {
                   {getStatusChip(order.status)}
                 </TableCell>
                 <TableCell align="center">
-                  {order.status === "Chờ duyệt" && (
+                  {order.status === "Chờ duyệt" ? (
                     <Box display="flex" gap={1} justifyContent="center">
                       <Button
                         variant="contained"
@@ -119,8 +136,7 @@ const EmployeeOrderPage = () => {
                         Hủy đơn
                       </Button>
                     </Box>
-                  )}
-                  {order.status !== "Chờ duyệt" && (
+                  ) : (
                     <Chip label="Đã xử lý" color="info" />
                   )}
                 </TableCell>
