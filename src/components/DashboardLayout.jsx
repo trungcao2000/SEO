@@ -276,6 +276,14 @@ export default function DashboardLayout() {
           >
             {/* Menu & Title (Mobile: chỉ hiển thị icon menu và chữ nhỏ hơn) */}
             <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: { xs: 0.5, sm: 1 }, display: { sm: "none" } }}
+              >
+                <MenuIcon fontSize="small" />
+              </IconButton>
               <Avatar
                 alt="Logo"
                 src={Logo}
@@ -285,17 +293,14 @@ export default function DashboardLayout() {
                   mx: { xs: 0.5, sm: 1.5 },
                 }}
               />
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: { xs: 0.5, sm: 1 }, display: { sm: "none" } }}
-              >
-                <MenuIcon fontSize="small" />
-              </IconButton>
               <BouncingText
                 sx={{
-                  fontSize: { xs: "2rem", sm: "3.2rem" },
+                  fontSize: {
+                    xs: "1rem",
+                    sm: "1.5rem",
+                    md: "2.5rem",
+                    lg: "3rem",
+                  },
                   ml: { xs: 0.5, sm: 1 },
                 }}
               >
