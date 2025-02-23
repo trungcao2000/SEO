@@ -319,24 +319,40 @@ export default function DashboardLayout() {
             ></Box>
 
             {/* Icon Buttons (Thu nhỏ icon trên mobile và giảm khoảng cách) */}
-            <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
+                gap: { xs: 0.5, sm: 1 }, // Khoảng cách linh hoạt cho mobile và PC
+              }}
+            >
               <IconButton
                 color="inherit"
                 onClick={toggleDarkMode}
-                sx={{ ml: { xs: 0.5, sm: 1 } }}
+                sx={{
+                  p: { xs: 0.5, sm: 1 }, // Padding nhỏ hơn cho mobile
+                  width: { xs: 46, sm: 50 },
+                  height: { xs: 46, sm: 50 },
+                }}
               >
                 {darkMode ? (
-                  <Brightness7Icon fontSize="small" />
+                  <Brightness7Icon fontSize="medium" />
                 ) : (
-                  <Brightness4Icon fontSize="small" />
+                  <Brightness4Icon fontSize="medium" />
                 )}
               </IconButton>
+
               <IconButton
                 color="inherit"
                 onClick={toggleContactPanel}
-                sx={{ ml: { xs: 0.5, sm: 1 } }}
+                sx={{
+                  p: { xs: 0.5, sm: 1 },
+                  width: { xs: 46, sm: 50 },
+                  height: { xs: 46, sm: 50 },
+                }}
               >
-                <ContactMailIcon fontSize="small" />
+                <ContactMailIcon fontSize="medium" />
               </IconButton>
             </Box>
           </Toolbar>

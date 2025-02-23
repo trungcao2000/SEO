@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -14,111 +14,102 @@ import {
   Input,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
+import api from "../api/apiPosts";
 
 export default function Posts() {
   const [open, setOpen] = useState(false);
+  const [data, setData] = useState([]);
+  const [isEdit, setIsEdit] = useState(false);
   const [currentUserId] = useState("user-123"); // ID người dùng hiện tại
-  const [posts, setPosts] = useState([
-    {
-      id: "post-1",
-      title: "Bài viết của người khác",
-      content: "Đây là bài viết không thuộc về bạn.",
-      image: "",
-      video: "",
-      userId: "user-999",
-      createdAt: "2025-02-20T14:30:00",
-    },
-    {
-      id: "post-2",
-      title: "Bài viết của tôi",
-      content: "Đây là bài viết của bạn.",
-      image: "",
-      video: "",
-      userId: currentUserId,
-      createdAt: "2025-02-21T09:15:00",
-    },
-  ]);
-
   const [currentPost, setCurrentPost] = useState({
     id: "",
     title: "",
     content: "",
-    image: "",
-    video: "",
+    imageUrl: "",
     userId: currentUserId,
     createdAt: "",
-    index: null,
   });
 
-  const handleOpen = (
-    post = {
-      id: "",
-      title: "",
-      content: "",
-      image: "",
-      video: "",
-      userId: currentUserId,
-      createdAt: "",
-      index: null,
+  function generateUniqueId() {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const randomStr = Math.random().toString(36).substring(2, 6);
+    return `${timestamp}_${randomStr}`;
+  }
+
+  const readData = async () => {
+    try {
+      const response = await api.get();
+      setData(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-  ) => {
-    setCurrentPost(post);
-    setOpen(true);
   };
+
+  useEffect(() => {
+    readData();
+  }, []);
 
   const handleClose = () => {
     setOpen(false);
+    setIsEdit(false);
     setCurrentPost({
       id: "",
       title: "",
       content: "",
-      image: "",
-      video: "",
+      imageUrl: "",
       userId: currentUserId,
       createdAt: "",
-      index: null,
     });
   };
 
-  const handleSave = () => {
-    const now = new Date().toISOString(); // Lấy thời gian hiện tại
-    if (currentPost.index !== null) {
-      // Chỉnh sửa bài viết
-      const updatedPosts = posts.map((post, i) =>
-        i === currentPost.index && post.userId === currentUserId
-          ? {
-              ...post,
-              title: currentPost.title,
-              content: currentPost.content,
-              image: currentPost.image,
-              video: currentPost.video,
-            }
-          : post
-      );
-      setPosts(updatedPosts);
+  const handleOpen = (post = null) => {
+    if (post) {
+      setIsEdit(true);
+      setCurrentPost(post);
     } else {
-      // Thêm bài viết mới
-      setPosts([
-        ...posts,
-        {
-          id: `post-${Date.now()}`,
-          title: currentPost.title,
-          content: currentPost.content,
-          image: currentPost.image,
-          video: currentPost.video,
-          userId: currentUserId,
-          createdAt: now, // Gán thời gian tạo
-        },
-      ]);
+      setIsEdit(false);
+      setCurrentPost({
+        id: "",
+        title: "",
+        content: "",
+        imageUrl: "",
+        userId: currentUserId,
+        createdAt: "",
+      });
     }
-    handleClose();
+    setOpen(true);
   };
 
-  const handleDelete = (index) => {
-    if (posts[index].userId === currentUserId) {
-      setPosts(posts.filter((_, i) => i !== index));
-    } else {
-      alert("Bạn không có quyền xóa bài viết này.");
+  const handleCreate = async () => {
+    try {
+      const newId = generateUniqueId();
+      const now = new Date().toISOString();
+      await api.post("", {
+        data: [{ ...currentPost, id: newId, createdAt: now }],
+      });
+      readData();
+      handleClose();
+    } catch (error) {
+      console.error("Error creating data:", error);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await api.put(`/id/${currentPost.id}`, { data: [currentPost] });
+      readData();
+      handleClose();
+    } catch (error) {
+      console.error("Error updating data:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/id/${id}`);
+      readData();
+    } catch (error) {
+      console.error("Error deleting data:", error);
     }
   };
 
@@ -158,7 +149,7 @@ export default function Posts() {
       </Button>
 
       <Grid container spacing={2} sx={{ marginTop: 2 }}>
-        {posts.map((post, index) => (
+        {data.map((post) => (
           <Grid item xs={12} md={6} lg={4} key={post.id}>
             <Card>
               <CardContent>
@@ -184,15 +175,6 @@ export default function Posts() {
                     style={{ width: "100%", borderRadius: 8, marginTop: 8 }}
                   />
                 )}
-                {post.video && (
-                  <video
-                    controls
-                    style={{ width: "100%", borderRadius: 8, marginTop: 8 }}
-                  >
-                    <source src={post.video} type="video/mp4" />
-                    Trình duyệt không hỗ trợ video.
-                  </video>
-                )}
                 {post.userId === currentUserId && (
                   <div
                     style={{
@@ -203,13 +185,13 @@ export default function Posts() {
                   >
                     <IconButton
                       color="primary"
-                      onClick={() => handleOpen({ ...post, index })}
+                      onClick={() => handleOpen(post)}
                     >
                       <Edit />
                     </IconButton>
                     <IconButton
                       color="error"
-                      onClick={() => handleDelete(index)}
+                      onClick={() => handleDelete(post.id)}
                     >
                       <Delete />
                     </IconButton>
@@ -223,7 +205,7 @@ export default function Posts() {
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>
-          {currentPost.index !== null ? "Chỉnh sửa bài viết" : "Thêm bài viết"}
+          {isEdit ? "Chỉnh sửa bài viết" : "Thêm bài viết"}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -256,21 +238,18 @@ export default function Posts() {
             onChange={(e) => handleFileChange(e, "image")}
             fullWidth
           />
-          <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
-            Video
-          </Typography>
-          <Input
-            type="file"
-            accept="video/*"
-            onChange={(e) => handleFileChange(e, "video")}
-            fullWidth
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Hủy</Button>
-          <Button variant="contained" onClick={handleSave}>
-            {currentPost.index !== null ? "Lưu chỉnh sửa" : "Thêm"}
-          </Button>
+          {isEdit ? (
+            <Button variant="contained" onClick={handleUpdate}>
+              Lưu chỉnh sửa
+            </Button>
+          ) : (
+            <Button variant="contained" onClick={handleCreate}>
+              Thêm
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </div>

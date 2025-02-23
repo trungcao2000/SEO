@@ -6,7 +6,6 @@ import Posts from "./pages/Posts";
 import Settings from "./pages/Settings";
 import SellProductPage from "./pages/SellProductPage";
 import theme from "./pages/theme";
-
 export default function App() {
   return (
     <ThemeProvider theme={theme}>

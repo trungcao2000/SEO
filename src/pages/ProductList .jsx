@@ -99,7 +99,6 @@ export default function ProductList() {
 
   return (
     <Box sx={{ p: 1 }}>
-      {" "}
       {/* Thêm margin-top để tránh đè lên AppBar */}
       <Typography variant="h4" gutterBottom>
         Danh Sách Sản Phẩm Đăng Bán
@@ -108,16 +107,16 @@ export default function ProductList() {
         elevation={3}
         sx={{
           position: "sticky",
-          top: 64, // Đảm bảo không bị AppBar che
-          zIndex: 1100, // Cao hơn AppBar nếu cần
-          p: 2,
-          mb: 3,
-          backgroundColor: "white",
-          borderRadius: "12px",
+          top: 64,
+          zIndex: 1100,
+          p: 1.5, // Giảm padding
+          mb: 2, // Giảm margin dưới
+          borderRadius: "10px",
         }}
       >
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <FormControl fullWidth>
+        <Box display="flex" gap={1.5} flexWrap="wrap" alignItems="center">
+          {/* Phân Loại */}
+          <FormControl size="small" sx={{ minWidth: 140 }}>
             <InputLabel>Phân Loại</InputLabel>
             <Select
               value={selectedCategory}
@@ -133,16 +132,19 @@ export default function ProductList() {
             </Select>
           </FormControl>
 
+          {/* Tìm kiếm sản phẩm */}
           <TextField
-            fullWidth
             label="Tìm kiếm sản phẩm"
             value={searchTerm}
             onChange={handleSearchChange}
             variant="outlined"
+            size="small"
+            sx={{ width: 200 }}
           />
 
-          <Box width="100%">
-            <Typography gutterBottom>
+          {/* Thanh trượt giá */}
+          <Box sx={{ flex: 1, minWidth: 220 }}>
+            <Typography variant="body2" gutterBottom>
               Khoảng Giá: {priceRange[0].toLocaleString()} -{" "}
               {priceRange[1].toLocaleString()} VND
             </Typography>
@@ -150,6 +152,7 @@ export default function ProductList() {
               value={priceRange}
               onChange={handlePriceChange}
               valueLabelDisplay="auto"
+              size="small"
               step={100000}
               marks={[
                 { value: 0, label: "0" },
@@ -163,6 +166,7 @@ export default function ProductList() {
           </Box>
         </Box>
       </Paper>
+
       <Grid container spacing={3}>
         {filteredProducts.length ? (
           filteredProducts.map((product) => (
