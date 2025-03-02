@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import {
   AppBar,
   Box,
@@ -38,6 +38,10 @@ import { styled } from "@mui/system";
 import { NavLink, Outlet } from "react-router";
 import MessengerChatButton from "../pages/MessengerChatButton";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import { ProductContext } from "../context/ProductContext";
+import { useNavigate } from "react-router-dom";
+import AuthButtons from "./AuthButtons";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 const drawerWidth = 288;
 
 const menuItems = [
@@ -61,6 +65,11 @@ const menuItems = [
     icon: <SettingsIcon />,
     path: "/settings",
   },
+  {
+    text: "Thông tin tài khoản",
+    icon: <AdminPanelSettingsIcon />,
+    path: "/users",
+  },
 ];
 
 export default function DashboardLayout() {
@@ -72,6 +81,14 @@ export default function DashboardLayout() {
   const handleDrawerCollapse = () => setDrawerOpen(!drawerOpen);
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleContactPanel = () => setContactOpen(!contactOpen);
+  const { isLoggedIn, logout } = useContext(ProductContext);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/"); // Chuyển về trang đăng nhập sau khi đăng xuất
+  };
 
   const theme = useMemo(
     () =>
@@ -354,6 +371,10 @@ export default function DashboardLayout() {
               >
                 <ContactMailIcon fontSize="medium" />
               </IconButton>
+              <AuthButtons
+                isLoggedIn={isLoggedIn}
+                handleLogout={handleLogout}
+              />
             </Box>
           </Toolbar>
         </AppBar>

@@ -1,620 +1,449 @@
-import React, { useState, useEffect } from "react";
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  IconButton,
-  Card,
-  CardContent,
+  readItems,
+  addItem,
+  updateItem,
+  deleteItem,
+} from "../api/firebaseService";
+import handleUpload from "../Upload";
+import React, { useState, useEffect, useContext } from "react";
+import { ProductContext } from "../context/ProductContext";
+import {
   Typography,
-  Grid,
-  Input,
-  CardMedia,
-  Chip,
+  Button,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   MenuItem,
+  LinearProgress,
   Slider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Tooltip,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
-import api from "../api/apiProducts";
 
 const categories = ["Điện tử", "Thời trang", "Gia dụng", "Sách", "Khác"];
-const soldStatus = ["Chưa bán", "Đã bán"];
 
-export default function SellProductPage() {
+const marks = [
+  { value: 100000, label: "100.000" },
+  { value: 200000, label: "200.000" },
+  { value: 500000, label: "500.000" },
+];
+
+export default function ProductManager() {
   const [open, setOpen] = useState(false);
-  const [products, setProducts] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState({
+  const [isDone, setIsDone] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const { products, setProducts } = useContext(ProductContext);
+  const currentId = "user123";
+  const [expandedRows, setExpandedRows] = useState({});
+  const [currentProduct, setcurrentProduct] = useState({
     id: "",
     name: "",
-    description: "",
-    price: 100000,
-    category: "",
+    content: "",
     imageUrl: "",
-    sold: "Chưa bán",
+    userId: currentId,
+    category: "",
+    price: 0,
+    createdAt: "",
+    status: "Chờ duyệt",
   });
-
-  const generateUniqueId = () => {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const randomStr = Math.random().toString(36).substring(2, 6);
-    return `${timestamp}_${randomStr}`;
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get();
-      setProducts(response.data);
-    } catch (error) {
-      console.error("❌ Lỗi khi tải dữ liệu:", error);
-    }
-  };
+  const productsArray = Object.values(products).sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    readItems(setProducts, "products");
+  }, [isDone, setProducts]);
+
+  const handleToggleContent = (id) => {
+    setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file);
+    if (file) setPreviewImage(URL.createObjectURL(file));
+  };
+
+  const handlePriceChange = (value) => {
+    setcurrentProduct((prev) => ({ ...prev, price: value }));
+  };
+
+  const handlePriceInputChange = (e) => {
+    const value = Number(e.target.value);
+    handlePriceChange(value >= 0 ? value : 0);
+  };
 
   const handleClose = () => {
     setOpen(false);
     setIsEdit(false);
-    setCurrentProduct({
+    setcurrentProduct({
       id: "",
       name: "",
-      description: "",
-      price: 100000,
-      category: "",
+      content: "",
       imageUrl: "",
-      sold: "Chưa bán",
+      userId: currentId,
+      category: "",
+      price: 0,
+      createdAt: "",
+      status: "Chờ duyệt",
     });
+    setSelectedFile(null);
+    setPreviewImage("");
+    setUploadProgress(0);
   };
 
-  const handleOpen = (product = null) => {
-    if (product) {
+  const handleOpen = (post = null) => {
+    if (post) {
       setIsEdit(true);
-      setCurrentProduct(product);
+      setcurrentProduct(post);
+      setPreviewImage(post.imageUrl);
     } else {
       setIsEdit(false);
-      setCurrentProduct({
+      setcurrentProduct({
         id: "",
         name: "",
-        description: "",
-        price: 100000,
-        category: "",
+        content: "",
         imageUrl: "",
-        sold: "Chưa bán",
+        userId: currentId,
+        category: "",
+        price: 0,
+        createdAt: "",
+        status: "Chờ duyệt",
       });
+      setPreviewImage("");
     }
     setOpen(true);
   };
 
   const handleCreate = async () => {
-    try {
-      const newId = generateUniqueId();
-      const now = new Date().toISOString();
-      await api.post("", {
-        data: [
-          { ...currentProduct, id: newId, createdAt: now, sold: "Chưa bán" },
-        ],
-      });
-      fetchProducts();
-      handleClose();
-    } catch (error) {
-      console.error("❌ Lỗi khi thêm sản phẩm:", error);
+    if (!selectedFile) {
+      alert("Vui lòng chọn ảnh trước khi tạo bài viết!");
+      return;
     }
+    setUploadProgress(10);
+    const id = `products_${Date.now()}`;
+    const now = new Date().toISOString();
+    const imageUrl = await handleUpload(selectedFile, setUploadProgress);
+
+    setUploadProgress(80);
+    await addItem(
+      id,
+      { ...currentProduct, id, createdAt: now, imageUrl },
+      "products"
+    );
+    setUploadProgress(100);
+    setIsDone(!isDone);
+    setTimeout(() => {
+      handleClose();
+    }, 500);
   };
 
   const handleUpdate = async () => {
-    try {
-      await api.put(`/id/${currentProduct.id}`, { data: [currentProduct] });
-      fetchProducts();
-      handleClose();
-    } catch (error) {
-      console.error("❌ Lỗi khi cập nhật sản phẩm:", error);
+    let imageUrl = currentProduct.imageUrl;
+    if (selectedFile) {
+      setUploadProgress(10);
+      imageUrl = await handleUpload(selectedFile, setUploadProgress);
+      setUploadProgress(80);
     }
+    await updateItem(
+      currentProduct.id,
+      { ...currentProduct, imageUrl },
+      "products"
+    );
+    setUploadProgress(100);
+    setIsDone(!isDone);
+    setTimeout(() => {
+      handleClose();
+    }, 500);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("❗Bạn có chắc muốn xóa sản phẩm này?")) {
-      try {
-        await api.delete(`/id/${id}`);
-        fetchProducts();
-      } catch (error) {
-        console.error("❌ Lỗi khi xóa sản phẩm:", error);
-      }
-    }
+    if (window.confirm("Bạn có chắc muốn xóa?"))
+      await deleteItem(id, "products");
+    setIsDone(!isDone);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () =>
-        setCurrentProduct((prev) => ({ ...prev, imageUrl: reader.result }));
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handlePriceChange = (e, newValue) => {
-    setCurrentProduct({ ...currentProduct, price: newValue });
+  const formatDate = (isoDate) => {
+    return new Date(isoDate).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Times New Roman" }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Đăng Bán Sản Phẩm
+    <div>
+      <Typography variant="h4" gutterBottom>
+        📦 Quản lý sản phẩm
       </Typography>
       <Button
         variant="contained"
         startIcon={<Add />}
         onClick={() => handleOpen()}
-        sx={{ mb: 3 }}
       >
         Thêm sản phẩm
       </Button>
+      <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>STT</TableCell>
+              <TableCell>Tên sản phẩm</TableCell>
+              <TableCell>Mô tả</TableCell>
+              <TableCell>Loại</TableCell>
+              <TableCell>Giá</TableCell>
+              <TableCell>Đăng lúc</TableCell>
+              <TableCell>Người đăng</TableCell>
+              <TableCell>Hình Ảnh</TableCell>
+              <TableCell align="center">Hành động</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {productsArray.map((product, index) => (
+              <React.Fragment key={product.id}>
+                <TableRow hover>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>
+                    {product.content.length > 50 ? (
+                      <>
+                        {expandedRows[product.id]
+                          ? product.content
+                          : `${product.content.substring(0, 50)}...`}{" "}
+                        <Button
+                          size="small"
+                          onClick={() => handleToggleContent(product.id)}
+                        >
+                          {expandedRows[product.id] ? "Ẩn bớt" : "Xem thêm"}
+                        </Button>
+                      </>
+                    ) : (
+                      product.content
+                    )}
+                  </TableCell>
+                  <TableCell>{product.category || "Chưa chọn"}</TableCell>
+                  <TableCell>
+                    {product.price.toLocaleString("vi-VN")} VNĐ
+                  </TableCell>
+                  <TableCell>{formatDate(product.createdAt)}</TableCell>
+                  <TableCell>{product.userId}</TableCell>
+                  <TableCell align="center">
+                    <Tooltip title={product.imageUrl}>
+                      {product.imageUrl.length > 17 ? (
+                        <>
+                          {expandedRows[product.id] ? (
+                            <>
+                              <a
+                                href={product.imageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  textDecoration: "none",
+                                  color: "#1976d2",
+                                  wordBreak: "break-word",
+                                }}
+                              >
+                                {product.imageUrl}
+                              </a>
+                              <Button
+                                size="small"
+                                onClick={() => handleToggleContent(product.id)}
+                                sx={{ textTransform: "none", ml: 1 }}
+                              >
+                                Ẩn bớt
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <a
+                                href={product.imageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  textDecoration: "none",
+                                  color: "#1976d2",
+                                }}
+                              >
+                                {`${product.imageUrl.substring(0, 17)}...`}
+                              </a>
+                              <Button
+                                size="small"
+                                onClick={() => handleToggleContent(product.id)}
+                                sx={{ textTransform: "none", ml: 1 }}
+                              >
+                                Xem thêm
+                              </Button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <a
+                          href={product.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: "none", color: "#1976d2" }}
+                        >
+                          {product.imageUrl}
+                        </a>
+                      )}
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="Sửa">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpen(product)}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Xóa">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-      <Grid container spacing={3}>
-        {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
-              {product.imageUrl && (
-                <CardMedia
-                  component="img"
-                  height="180"
-                  image={product.imageUrl}
-                  alt={product.name}
-                  sx={{ objectFit: "cover" }}
-                />
-              )}
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  {product.name}
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  {product.description || "Không có mô tả"}
-                </Typography>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Phân loại: {product.category}
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="bold"
-                  color="primary"
-                >
-                  Giá: {Number(product.price).toLocaleString("vi-VN")} VNĐ
-                </Typography>
-                <Chip
-                  label={product.sold === "Đã bán" ? "Đã bán" : "Chưa bán"}
-                  color={product.sold === "Đã bán" ? "success" : "default"}
-                  sx={{ mt: 1 }}
-                />
-              </CardContent>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px",
-                }}
-              >
-                <IconButton color="primary" onClick={() => handleOpen(product)}>
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDelete(product.id)}
-                >
-                  <Delete />
-                </IconButton>
-              </div>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle>
-          {isEdit ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
+          {isEdit ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
         </DialogTitle>
         <DialogContent>
+          {uploadProgress > 0 && (
+            <LinearProgress
+              variant="determinate"
+              value={uploadProgress}
+              sx={{ mb: 2 }}
+            />
+          )}
           <TextField
-            label="Tên sản phẩm"
+            label="Tiêu đề"
             fullWidth
-            margin="normal"
+            margin="dense"
             value={currentProduct.name}
             onChange={(e) =>
-              setCurrentProduct({ ...currentProduct, name: e.target.value })
+              setcurrentProduct({ ...currentProduct, name: e.target.value })
             }
           />
           <TextField
-            label="Mô tả"
+            label="Nội dung"
             fullWidth
             multiline
-            rows={3}
-            margin="normal"
-            value={currentProduct.description}
+            rows={4}
+            margin="dense"
+            value={currentProduct.content}
             onChange={(e) =>
-              setCurrentProduct({
-                ...currentProduct,
-                description: e.target.value,
-              })
+              setcurrentProduct({ ...currentProduct, content: e.target.value })
             }
           />
           <TextField
             select
-            label="Phân loại"
+            label="Loại sản phẩm"
             fullWidth
-            margin="normal"
+            margin="dense"
             value={currentProduct.category}
             onChange={(e) =>
-              setCurrentProduct({ ...currentProduct, category: e.target.value })
+              setcurrentProduct({ ...currentProduct, category: e.target.value })
             }
           >
-            {categories.map((cat) => (
-              <MenuItem key={cat} value={cat}>
-                {cat}
+            {categories.map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
               </MenuItem>
             ))}
           </TextField>
-          <Typography gutterBottom>Giá (100.000 - 500.000 VNĐ)</Typography>
+
+          <Typography variant="subtitle1" sx={{ mt: 2 }}>
+            💵 Chọn giá sản phẩm
+          </Typography>
           <Slider
             value={currentProduct.price}
-            min={100000}
+            onChange={(e, value) => handlePriceChange(value)}
+            min={0}
             max={500000}
-            step={100000}
-            marks
+            step={10000}
+            marks={marks}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => `${value.toLocaleString("vi-VN")} VNĐ`}
-            onChange={handlePriceChange}
-            sx={{ mb: 2 }}
+            sx={{ mt: 2 }}
           />
           <TextField
             label="Giá (VNĐ)"
             type="number"
             fullWidth
-            margin="normal"
+            margin="dense"
             value={currentProduct.price}
-            onChange={(e) => handlePriceChange(null, Number(e.target.value))}
+            onChange={handlePriceInputChange}
+            inputProps={{ min: 0, step: 10000 }}
           />
-          {isEdit && (
-            <TextField
-              select
-              label="Trạng thái bán"
-              fullWidth
-              margin="normal"
-              value={currentProduct.sold}
-              onChange={(e) =>
-                setCurrentProduct({ ...currentProduct, sold: e.target.value })
-              }
-            >
-              {soldStatus.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-          <Input
-            type="file"
-            fullWidth
-            onChange={handleFileChange}
-            sx={{ mt: 2 }}
-          />
-          {currentProduct.imageUrl && (
+
+          {previewImage && (
             <img
-              src={currentProduct.imageUrl}
+              src={previewImage}
               alt="Xem trước"
-              style={{ width: "100%", marginTop: 10, borderRadius: 8 }}
+              style={{
+                width: "100%",
+                borderRadius: 8,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
             />
           )}
+          <Button variant="outlined" component="label" fullWidth>
+            Chọn ảnh
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Hủy</Button>
-          <Button
-            variant="contained"
-            onClick={isEdit ? handleUpdate : handleCreate}
-          >
-            {isEdit ? "Cập nhật" : "Thêm"}
-          </Button>
+          {isEdit ? (
+            <Button
+              variant="contained"
+              onClick={handleUpdate}
+              disabled={uploadProgress > 0 && uploadProgress < 100}
+            >
+              Lưu chỉnh sửa
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleCreate}
+              disabled={uploadProgress > 0 && uploadProgress < 100}
+            >
+              Thêm
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </div>
   );
 }
-
-// import React, { useState } from "react";
-// import {
-//   Container,
-//   Card,
-//   CardContent,
-//   CardMedia,
-//   Typography,
-//   TextField,
-//   Button,
-//   Grid,
-//   Slider,
-//   FormControl,
-//   InputLabel,
-//   Select,
-//   MenuItem,
-//   IconButton,
-//   Divider,
-//   CardActions,
-//   Chip,
-//   InputAdornment,
-// } from "@mui/material";
-// import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-// import DeleteIcon from "@mui/icons-material/Delete";
-// import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-// import CancelIcon from "@mui/icons-material/Cancel";
-// import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-
-// const categories = ["Điện tử", "Thời trang", "Gia dụng", "Sách", "Khác"];
-// const priceMarks = [
-//   { value: 100000, label: "100K" },
-//   { value: 200000, label: "200K" },
-//   { value: 500000, label: "500K" },
-// ];
-
-// const SellProductPage = () => {
-//   const [product, setProduct] = useState({
-//     name: "",
-//     description: "",
-//     price: 200000,
-//     category: "",
-//     image: null,
-//   });
-//   const [products, setProducts] = useState([]);
-//   const [imagePreview, setImagePreview] = useState(null);
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setProduct((prev) => ({ ...prev, [name]: value }));
-//   };
-
-//   const handlePriceChange = (value) => {
-//     setProduct((prev) => ({ ...prev, price: value }));
-//   };
-
-//   const handleImageUpload = (e) => {
-//     const file = e.target.files[0];
-//     setProduct((prev) => ({ ...prev, image: file }));
-//     setImagePreview(file ? URL.createObjectURL(file) : null);
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     if (!product.name || !product.category) {
-//       alert("Vui lòng điền đầy đủ thông tin.");
-//       return;
-//     }
-
-//     const newProduct = {
-//       ...product,
-//       id: Date.now(),
-//       sold: false,
-//       imageUrl: imagePreview,
-//     };
-
-//     setProducts([newProduct, ...products]);
-//     alert("✅ Sản phẩm đã được đăng bán!");
-//     setProduct({
-//       name: "",
-//       description: "",
-//       price: 200000,
-//       category: "",
-//       image: null,
-//     });
-//     setImagePreview(null);
-//   };
-
-//   const handleDelete = (id) => {
-//     if (window.confirm("❗Bạn có chắc muốn xóa sản phẩm này?")) {
-//       setProducts(products.filter((item) => item.id !== id));
-//     }
-//   };
-
-//   const toggleSoldStatus = (id) => {
-//     setProducts((prev) =>
-//       prev.map((item) =>
-//         item.id === id ? { ...item, sold: !item.sold } : item
-//       )
-//     );
-//   };
-
-//   return (
-//     <Container maxWidth="md" sx={{ py: 4, fontFamily: "Times New Roman" }}>
-//       <Card sx={{ borderRadius: "16px", boxShadow: 3, mb: 4 }}>
-//         <CardContent>
-//           <Typography
-//             variant="h4"
-//             gutterBottom
-//             textAlign="center"
-//             fontWeight="bold"
-//           >
-//             Đăng Bán Sản Phẩm
-//           </Typography>
-//           <form onSubmit={handleSubmit}>
-//             <Grid container spacing={3}>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   label="Tên sản phẩm"
-//                   name="name"
-//                   value={product.name}
-//                   onChange={handleChange}
-//                   fullWidth
-//                   required
-//                 />
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   label="Mô tả"
-//                   name="description"
-//                   value={product.description}
-//                   onChange={handleChange}
-//                   fullWidth
-//                   multiline
-//                   rows={3}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} sm={6}>
-//                 <FormControl fullWidth required>
-//                   <InputLabel>Phân loại</InputLabel>
-//                   <Select
-//                     name="category"
-//                     value={product.category}
-//                     label="Phân loại"
-//                     onChange={handleChange}
-//                   >
-//                     {categories.map((cat) => (
-//                       <MenuItem key={cat} value={cat}>
-//                         {cat}
-//                       </MenuItem>
-//                     ))}
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-// <Grid item xs={12} sm={6}>
-//   <TextField
-//     label="Giá (VNĐ)"
-//     name="price"
-//     value={product.price}
-//     onChange={handlePriceChange}
-//     fullWidth
-//     required
-//     InputProps={{
-//       startAdornment: (
-//         <InputAdornment position="start">
-//           <AttachMoneyIcon />
-//         </InputAdornment>
-//       ),
-//     }}
-//   />
-//   <Slider
-//     value={product.price}
-//     onChange={(_, value) => handlePriceChange(value)}
-//     step={100000}
-//     marks={priceMarks}
-//     min={100000}
-//     max={500000}
-//     valueLabelDisplay="auto"
-//   />
-// </Grid>
-//               <Grid item xs={12} sm={6} textAlign="center">
-//                 <input
-//                   accept="image/*"
-//                   type="file"
-//                   id="upload-image"
-//                   hidden
-//                   onChange={handleImageUpload}
-//                 />
-//                 <label htmlFor="upload-image">
-//                   <Button
-//                     variant="contained"
-//                     component="span"
-//                     startIcon={<CloudUploadIcon />}
-//                   >
-//                     Tải ảnh
-//                   </Button>
-//                 </label>
-//                 {imagePreview && (
-//                   <img
-//                     src={imagePreview}
-//                     alt="Xem trước"
-//                     style={{ marginTop: 10, maxWidth: "100%", borderRadius: 8 }}
-//                   />
-//                 )}
-//               </Grid>
-//               <Grid item xs={12} textAlign="center">
-//                 <Button
-//                   type="submit"
-//                   variant="contained"
-//                   size="large"
-//                   sx={{ px: 5, borderRadius: "12px" }}
-//                 >
-//                   Đăng Bán
-//                 </Button>
-//               </Grid>
-//             </Grid>
-//           </form>
-//         </CardContent>
-//       </Card>
-
-//       {products.length > 0 && (
-//         <>
-//           <Typography
-//             variant="h5"
-//             gutterBottom
-//             fontWeight="bold"
-//             textAlign="center"
-//           >
-//             🛒 Danh Sách Sản Phẩm Đã Đăng
-//           </Typography>
-//           <Grid container spacing={4}>
-//             {products.map(
-//               ({ id, name, description, price, category, imageUrl, sold }) => (
-//                 <Grid item xs={12} sm={6} md={4} key={id}>
-//                   <Card sx={{ borderRadius: "12px", boxShadow: 2 }}>
-//                     {imageUrl && (
-//                       <CardMedia
-//                         component="img"
-//                         height="180"
-//                         image={imageUrl}
-//                         alt={name}
-//                         sx={{ objectFit: "cover" }}
-//                       />
-//                     )}
-//                     <CardContent>
-//                       <Typography variant="h6" fontWeight="bold" gutterBottom>
-//                         {name}
-//                       </Typography>
-//                       <Typography variant="body2" gutterBottom>
-//                         {description || "Không có mô tả"}
-//                       </Typography>
-//                       <Typography variant="body2" color="text.secondary">
-//                         Phân loại: {category}
-//                       </Typography>
-//                       <Typography
-//                         variant="subtitle1"
-//                         color="primary"
-//                         fontWeight="bold"
-//                         gutterBottom
-//                       >
-//                         Giá: {price.toLocaleString("vi-VN")} VNĐ
-//                       </Typography>
-//                       <Chip
-//                         label={sold ? "Đã bán" : "Chưa bán"}
-//                         color={sold ? "error" : "success"}
-//                         icon={sold ? <CheckCircleIcon /> : <CancelIcon />}
-//                         sx={{ mt: 1 }}
-//                       />
-//                     </CardContent>
-//                     <Divider />
-//                     <CardActions sx={{ justifyContent: "space-between" }}>
-//                       <Button
-//                         size="small"
-//                         variant="outlined"
-//                         color={sold ? "secondary" : "success"}
-//                         onClick={() => toggleSoldStatus(id)}
-//                       >
-//                         {sold ? "Đánh dấu chưa bán" : "Đánh dấu đã bán"}
-//                       </Button>
-//                       <IconButton
-//                         color="error"
-//                         onClick={() => handleDelete(id)}
-//                       >
-//                         <DeleteIcon />
-//                       </IconButton>
-//                     </CardActions>
-//                   </Card>
-//                 </Grid>
-//               )
-//             )}
-//           </Grid>
-//         </>
-//       )}
-//     </Container>
-//   );
-// };
-
-// export default SellProductPage;
